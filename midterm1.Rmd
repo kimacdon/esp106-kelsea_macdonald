@@ -127,7 +127,7 @@ ggplot(data = both.2016) +
 
 ##### b) Run a regression of logged spending on taxonomic group and print the summary for the regression below (3 points)
 ```{r}
-regression <- lm(log_spending~taxon,data=both.2016) #using just data from 2016
+regression <- lm(log_spending~taxon,data=both) #using data from all years
 print(summary(regression))
 ```
 
@@ -135,6 +135,6 @@ print(summary(regression))
 
 Based on your results in b, do we see statistically significant differences in spending between different taxonomic groups? If so, which kinds of species tend to have more spent on them and which have less? (1 points)
 
-**Answer: There is a statistically significant difference for Invertebrates, Mammals, and Plants, but no significant difference for Birds, Fish, Fungi, or Reptiles. Since the coefficient represents the difference compared to Amphibians, we can interpret this to mean that we spend significantly MORE on Mammals than Amphibians and we spend significantly LESS on Invertebrates and Plants than Amphibians.** 
+**Answer: There is a statistically significant difference in spending for all taxa compared to Amphibians. We spend significantly MORE on birds, fish, mammals, and reptiles than on amphibians. We spend significantly LESS on fungi, invertebrates, and plants than we do on amphibians.** 
 
 #### 7. Push your R markdown file to your Github repository (2 points)
