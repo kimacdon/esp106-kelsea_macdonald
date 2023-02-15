@@ -1,0 +1,172 @@
+---
+title: "Lab 6"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+path <- "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/lab6"
+
+knitr::opts_knit$set(root.dir = path)
+setwd(path)
+```
+
+## Before you start
+
+Before you start, install the current version of the "terra" package *like this:*
+
+```
+install.packages('terra', repos='https://rspatial.r-universe.dev')
+```
+
+(unless it asks you to install from source code, in that case use the normal install)
+
+Read a [short introduction](https://rspatial.org/spatial/index.html) to spatial data in R.  
+
+There are a lot of questions. At first, do not spend too much time on making the perfect maps (you can come back to that later)
+
+## Introduction
+
+In this lab we will use some GPS tracking data for Blue Whales in the eastern North Pacific, downloaded from Movebank <https://www.movebank.org> which has lots of wildlife tracking data. We will make some maps and overlay polygons of Marine Protected Areas off the California coast to understand how whales move into and out of MPAs.
+
+## Whale data
+
+#### 1. Use `terra::vect` to read in the datapoints for the Blue Whale migration data ("points.shp"). 
+
+```{r}
+unzip("Lab 6.zip")
+library(terra)
+bluew <- vect("Blue Whale Migration Data/points.shp")
+bluew
+```
+
+This is a set of point location for GPS tagged blue whales the eastern north Pacific. Identifiers for individual whales are given in the ind_ident column. 
+
+#### 2) How many observations are there in this dataset? And how many individual whales are tracked? 
+
+```{r}
+length(bluew$ind_ident) #There are 15545 observations
+length(unique(bluew$ind_ident)) #There are 141 individual whales
+```
+
+## Mapping whales
+
+#### 3. Get the global country boundaries with the geodata package 
+
+```{r}
+library(geodata)
+wrld <- geodata::world(path=".")
+head(wrld)
+head(bluew)
+```
+
+
+#### 4. Make a plot showing the whale observations, using a different color for each whale (many colors will be alike). Add the west coast of North America for reference. Set the limits of the plot to the extent of the whale migration data. 
+
+Refine the below. Plot 1 on canvas shows you what you can aim for.
+
+```{r}
+# Step 1. plot the countries using the extent of the whale data to only show the area of interest. 
+# the area of interest
+aoi <- ext(bluew) + 2
+
+plot(wrld, ext=aoi)
+
+#Step 2: plot the whale points. You can use either the "points" method or "plot( , add=TRUE)". The latter is easier for coloring, but you need to tell it not to add a legend.
+
+plot(bluew, "ind_ident", add=TRUE, cex=.5, legend=FALSE, rainbow(10))
+polys(wrld, col="grey", border="black", lwd=1.5)
+
+```
+
+#### 5) make new SpatVectors for each of the following two individuals: "2008CA-Bmu-00825" and "2005CA-Bmu-10821"
+
+```{r}
+ind.825 <- subset(bluew, bluew$ind_ident == "2008CA-Bmu-00825")
+ind.10821 <- subset(bluew, bluew$ind_ident == "2005CA-Bmu-10821")
+```
+
+#### 6) Combine these two into one new SpatVector 
+
+```{r}
+both.ind <- rbind(ind.825, ind.10821) # combined them by row
+```
+
+
+#### 7) Make a map showing the tracks of these two using different colors. See plot2 on Canvas for an example.
+
+```{r}
+aoi <- ext(bluew) + 2 # first we set the extent
+plot(wrld, ext=aoi) # then we plot the country outline within the extent
+polys(wrld, col="grey", border="black") # then I filled in the countries with grey
+plot(both.ind, "ind_ident", add=TRUE, cex=.5, col=c("blue","red"), # plot the 2 whale tracks
+     plg=list(legend="ind_ident", x="bottomleft")) # moving the legend to the bottom left
+```
+
+## Protected areas
+
+#### 8) The folder MPAs has a shapefile in it with polygons for Marine Protected Areas within the United States. This file was extracted from a file with all protected areas in the US [source](https://www.protectedplanet.net). Read the MPA shapefile. 
+
+```{r}
+mpa <- vect("MPAs/mpas.shp")
+```
+
+#### 9) Now we will focus on just the US west coast. You can use the following longitude and latitude extent: xmin=-128, xmax=-115, ymin=32, ymax=40. Get just the MPAs on the US west coast by cropping the MPA dataset to this extent.
+
+```{r}
+#Hint: use the crop() function
+extent <- ext(-128, -115, 32, 40) #setting the extent
+mpa <- crop(mpa, extent) #cropping to the extent
+```
+
+#### 10) Find the fraction of the blue whale observations that are in one of the west coast MPAs. You can use `is.related`
+
+```{r}
+summary(is.related(bluew, mpa, "within")) #gives us a certain number of TRUE's for the number of bluewhale observations that fall within mpa
+fraction <- 2496/(2496+13049) # divided this by the total number of observations
+fraction # about 0.16 of observations are in one of the west coast MPAs
+```
+
+#### 11) Find what fraction of blue whales in the dataset spend at least some time in one of these west coast MPAs. 
+
+```{r}
+b <-bluew$ind_ident[is.related(bluew, mpa, "within")] #this gives the identities of all the observations that fall within a marine protected area
+length(unique(b)) #there are 119 unique identities that fall within an MPA
+119/141 # about 0.84 of blue whales spend at least some time in one of the MPA's
+```
+
+
+#### 12. Create a raster with counts of blue whale observations along the California coast. Use the spatial extent we used for the mpa data (question 8) and use a spatial resolution of 1/6th of a degree. First create an empty SpatRaster. Then use `rasterize`
+
+```{r}
+r <- rast(bluew , res=1/6, extent=extent) #creating an empty raster
+r <- rasterize(bluew, r, fun="count") # rasterizing by observation count
+r
+```
+
+#### 13. Make a map to show the counts and the MPAs and land areas. Plot 3 on Canvas shows you the plot you are aiming for. 
+
+```{r}
+plot(r) #plot the raster
+plot(wrld, ext=extent, add=TRUE) # plot the country outline by previous extent
+polys(wrld, col="grey", border="black") # fill in country with grey
+lines(mpa, col="blue") # added blue lines around marine protected areas
+```
+
+#### 14) Using the country boundaries, compute for the raster with the number of observations, the distance to the coast
+
+```{r}
+distance <- distance(r, wrld) #this calculates the distance between each raster value and the country outline (coast)
+```
+
+#### 15) For each blue whale observation, find the distance to the coast based on this raster (use "extract"). Make a histogram of the distribution. 
+
+```{r}
+extracted <- as.data.frame(extract(distance, bluew)) # extracted each distance by observation and turned into a dataframe so that its easier to plot
+par(mar = c(4,4,4,4)) # extended parameters to fit labels
+hist(extracted$layer, breaks=25, main="Distance between blue whale observations and coast", xlab= "distance (m)", ylab="count") # increased breaks to show pattern better
+```
+
