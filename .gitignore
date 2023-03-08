@@ -8,3 +8,5 @@ data/
 .RData
 .Rhistory
 .DS_Store
+*.tar.gz
+*.html
