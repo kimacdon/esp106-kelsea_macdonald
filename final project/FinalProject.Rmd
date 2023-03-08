@@ -1,0 +1,30 @@
+---
+title: "Final Project"
+author: "Kelsea MacDonald"
+date: "2023-03-06"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
+setwd(path)
+```
+
+```{r}
+list.files(path)
+library(terra)
+dailyTMAX60 <- rast("Complete_TMAX_Daily_LatLong1_1960.nc")
+plot(dailyTMAX60)
+# dailyTMAX60 is the average max land temperature from 1960 to 1969 for the whole world
+```
+```{r}
+#For california:
+data <- read.delim(file="california-TMAX-Trend.txt", skip = 68, sep="\t", quote="", comment.char="")
+data <- read.delim(data, sep="")
+data <- as.matrix(data, ncol=12)
+separate(data) #not working :/
+```
+
