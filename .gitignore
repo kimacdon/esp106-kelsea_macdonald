@@ -5,3 +5,6 @@
 *.txt
 *.nc
 data/
+.RData
+.Rhistory
+.DS_Store
