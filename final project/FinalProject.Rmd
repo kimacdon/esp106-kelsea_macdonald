@@ -9,22 +9,47 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
-setwd(path)
+#path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
+#setwd(path)
 ```
 
 ```{r}
+URL = "http://berkeleyearth.lbl.gov/auto/Regional/TMAX/Text/california-TMAX-Trend.txt"
+f = file.path("data", basename(URL))
+if (!file.exists(f)) {
+  dir.create("data", FALSE, FALSE)
+  download.file(URL, f, mode="wb")
+}
+
 list.files(path)
 library(terra)
 dailyTMAX60 <- rast("Complete_TMAX_Daily_LatLong1_1960.nc")
 plot(dailyTMAX60)
 # dailyTMAX60 is the average max land temperature from 1960 to 1969 for the whole world
 ```
+
 ```{r}
 #For california:
-data <- read.delim(file="california-TMAX-Trend.txt", skip = 68, sep="\t", quote="", comment.char="")
-data <- read.delim(data, sep="")
+#f = "california-TMAX-Trend.txt"
+x = readLines(f)
+x = x[-c(1:68)]
+
+data <- read.delim(file="california-TMAX-Trend.txt", skip=68, header=F)
+hdr = data[1:2,]
+d= data[-c(1:3),]
+d = stringr::str_squish(d)
+y = strsplit(d, " ")
+z = do.call(rbind, y)
+z = matrix(as.numeric(z), nrow=nrow(z))
+head(z)
+
+data <- data.frame(strsplit(data[1,1], split = ","), strsplit(data[2:1796,1], split = " "))
 data <- as.matrix(data, ncol=12)
 separate(data) #not working :/
+
+library(dplyr)
+library(tidyr)
+data <- read.delim(file="california-TMAX-Trend.txt", skip = 68, sep="\t", quote="", comment.char="")
+separate(data, col =1, sep=" ")
 ```
 
