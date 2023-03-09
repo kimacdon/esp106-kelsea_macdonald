@@ -14,42 +14,58 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+# Read in file:
 URL = "http://berkeleyearth.lbl.gov/auto/Regional/TMAX/Text/california-TMAX-Trend.txt"
 f = file.path("data", basename(URL))
 if (!file.exists(f)) {
   dir.create("data", FALSE, FALSE)
   download.file(URL, f, mode="wb")
 }
+# This is the file for daily max land temperature anomaly from 1870 to 2019 in the state of California
+# Data is split into monthly, annual, 5-year, 10-year, and 20-year anomalies
+# Berkeley Earth
+```
 
+```{r, scratch} 
+# Scratch work from when I was figuring things out:
+#Delete before finishing:
 # list.files(path)
 # library(terra)
 # dailyTMAX60 <- rast("Complete_TMAX_Daily_LatLong1_1960.nc")
 # plot(dailyTMAX60)
 # dailyTMAX60 is the average max land temperature from 1960 to 1969 for the whole world
-```
-
-```{r}
-#For california:
-#f = "california-TMAX-Trend.txt"
-x = readLines(f)
-x = x[-c(1:68)]
-
-data <- read.delim(file="california-TMAX-Trend.txt", skip=68, header=F)
-hdr = data[1:2,]
-d= data[-c(1:3),]
-d = stringr::str_squish(d)
-y = strsplit(d, " ")
-z = do.call(rbind, y)
-z = matrix(as.numeric(z), nrow=nrow(z))
-head(z)
-
-# data <- data.frame(strsplit(data[1,1], split = ","), strsplit(data[2:1796,1], split = " "))
+## data <- data.frame(strsplit(data[1,1], split = ","), strsplit(data[2:1796,1], split = " "))
 # data <- as.matrix(data, ncol=12)
 # separate(data) #not working :/
 
 # library(dplyr)
 # library(tidyr)
 # data <- read.delim(file="california-TMAX-Trend.txt", skip = 68, sep="\t", quote="", comment.char="")
-# separate(data, col =1, sep=" ")
+# separate(data, col =1, sep=" ")f = "california-TMAX-Trend.txt"
+
+```
+
+```{r}
+# Read txt file "f" with first 68 comment lines removed, readLines method
+x = readLines(f)
+x = x[-c(1:68)]
+
+# read.delim method
+data <- read.delim(file= f, skip=68, header=F)
+# Then set header as the first 2 rows
+hdr = data[1:2,]
+# set rest as the data
+d= data[-c(1:3),]
+# turn the multiple spaces into single spaces
+d = stringr::str_squish(d)
+# split the string into separate characters by single space
+y = strsplit(d, " ")
+# bind the strings into rows
+z = do.call(rbind, y)
+# binds the rows into a matrix and changes the variables to numeric
+z = matrix(as.numeric(z), nrow=nrow(z))
+head(z)
+
+
 ```
 
