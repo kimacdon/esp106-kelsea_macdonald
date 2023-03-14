@@ -9,7 +9,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-#path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
+path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
 #setwd(path)
 ```
 
@@ -124,7 +124,7 @@ us.yl <- subset(yl, CountryNum == 840)
 # We have data for 1992 to 2021 so we need to subset our temp data
 plot(us.yl$Year, us.yl$SpeciesTotal)
 agg <- aggregate(SpeciesTotal ~ Year, data=us.yl, FUN=sum)
-
+#Actually it doesnt make sense to sum these because the numbers may only be increasing due to increased measurements taken
 ```
 
 ```{r}
