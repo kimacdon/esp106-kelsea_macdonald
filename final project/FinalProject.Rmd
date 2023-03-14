@@ -123,8 +123,8 @@ yl <- subset(birds, AOU == 2550)
 us.yl <- subset(yl, CountryNum == 840)
 # We have data for 1992 to 2021 so we need to subset our temp data
 plot(us.yl$Year, us.yl$SpeciesTotal)
-agg <- aggregate(SpeciesTotal ~ Year, data=us.yl, FUN=sum)
-#Actually it doesnt make sense to sum these because the numbers may only be increasing due to increased measurements taken
+agg <- aggregate(SpeciesTotal ~ Year, data=us.yl, FUN=mean)
+#Actually it doesnt make sense to sum these because the numbers may only be increasing due to increased measurements taken, maybe use mean?
 ```
 
 ```{r}
