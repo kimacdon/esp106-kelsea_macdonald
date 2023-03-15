@@ -7,9 +7,11 @@ editor_options:
   chunk_output_type: console
 ---
 ## Background:
-  I wanted to find out if lesser yellowleg populations were sensitive to high temperatures The missouri department of conservation states that they may lose nesting ground as the climate warms (https://mdc.mo.gov/discover-nature/field-guide/lesser-yellowlegs). To test a correlation between high temperatures and population size I will compare max temperature data from within the US to a record of lesser yellowlegs populations in the US. 
+  I wanted to find out if lesser yellowleg populations were sensitive to high temperatures The missouri department of conservation states that they may lose nesting ground as the climate warms (https://mdc.mo.gov/discover-nature/field-guide/lesser-yellowlegs). To test a correlation between high temperatures and population size I will compare max temperature data from within the US to a record of lesser yellowlegs populations in the US.  
+    
   The yellowleg data comes from the North American Breeding Bird Survey dataset from the USGS website. They used a method called avian point count, where a single person in a single location counted all of the birds of each species for a fixed amount of time. 
-  The temperature data from berkeleyearth is derived from about 19,000 temperature stations across the US from which land surface temperatures were taken and compared to the baseline for that station. The baseline is set as Jan 1951-Dec 1980.
+    
+  The temperature data from berkeleyearth is derived from about 19,000 temperature stations across the US from which land surface temperatures were taken and compared to the baseline for that station. The baseline is set as Jan 1951-Dec 1980. Then the anomaly from baseline for each station was averaged together to give a single value to represent temperature anomaly for the entire US.
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
@@ -79,7 +81,7 @@ path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/es
 #                  "Twenty-year Anomaly", "Twenty-year Anomaly Unc")
 ```
 
-Download avian point count data from sciencebase as a csv:
+### Download avian point count data from sciencebase as a csv:
 ```{r}
 # library(rjson)
 # URL.bird = "	https://www.sciencebase.gov/MigrantNonBreeder.zip"
@@ -93,7 +95,7 @@ migrant.sum <- file.path(path, "data", "MigrantNonBreeder", "MigrantSummary.csv"
 birds <- read.csv(migrant.sum)
 ```
 
-From the bird dataset, subset the lesser yellowlegs within the US:
+### From the bird dataset, subset the lesser yellowlegs within the US:
 ```{r}
 # AOU 2550 = lesser yellowlegs
 yl <- subset(birds, AOU == 2550)
@@ -102,12 +104,12 @@ us.yl <- subset(yl, CountryNum == 840)
 # This limits our data to the years 1992 - 2021
 ```
 
-There were multiple point counts taken per year, so take the average for each year:
+### There were multiple point counts taken per year, so take the average for each year:
 ```{r}
 mean.yl <- aggregate(SpeciesTotal ~ Year, data=us.yl, FUN=mean)
 ```
 
-Download temperature anomaly data for the US from berkeleyearth:
+### Download temperature anomaly data for the US from berkeleyearth:
 ```{r}
 temp.URL = "http://berkeleyearth.lbl.gov/auto/Regional/TMAX/Text/united-states-TMAX-Trend.txt"
 temp.file = file.path("data", basename(temp.URL))
@@ -119,7 +121,7 @@ if(!file.exists(temp.file)) {
 # A more meaningful way to look at the data would be to localize it, but the samples for the lesser yellowlegs were taken all over the US and there was not enough data for any one location
 ```
 
-The temperature data is a txt file so we need to convert it to a data.frame:
+### The temperature data is a txt file so we need to convert it to a data.frame:
 ```{r}
 r = read.delim(file = temp.file, skip = 67, header = FALSE)
 t.hdr = r[1:2,] #this separates the header
@@ -136,24 +138,24 @@ colnames(t.data.e) <- c("Year", "Month", "Monthly Anomaly", "Monthly Anomaly Unc
 t.data.f <- as.data.frame(t.data.e) 
 ```
 
-Since avian point count data for lesser yellow legs is only available for the years 1992 to 2021, subset temperature data to match this time frame:
+### Since avian point count data for lesser yellow legs is only available for the years 1992 to 2021, subset temperature data to match this time frame:
 ```{r}
 t.data.g <- subset(t.data.f, Year < 2021 & Year > 1990)
 ```
 
-We are going to use annual anomalies for our plot, but the annual anomalies are given as averages centered around the corresponding month in the table. In order to only get one value per year, subset only data for the month of June:
+### We are going to use annual anomalies for our plot, but the annual anomalies are given as averages centered around the corresponding month in the table. In order to only get one value per year, subset only data for the month of June:
 ```{r}
 temp <- subset(t.data.g, Month == 6)
 # this is the final table for our temperature data, now we can use it for our plot
 ```
 
 
-Merge the two datasets:
+### Merge the two datasets:
 ```{r}
 merg <- merge(temp, mean.yl, by = 'Year') # merged by the common column, "Year"
 ```
 
-Plots:
+### Plots:
 ```{r}
 library(ggplot2)
 
@@ -161,34 +163,65 @@ library(ggplot2)
 # plot(temp$Year, temp$`Annual Anomaly`)
 # lm(temp$Year ~ temp$`Annual Anomaly`)
 ggplot(data=temp, aes(Year, `Annual Anomaly`))+
-  geom_point()+
-  geom_line()+
-  stat_smooth(method = "lm",
-              formula = y ~ x,
-              geom = "smooth")
+  theme(panel.background = element_rect(fill="white"),
+        panel.grid.major = element_line(colour = "grey", linetype = "dotted"))+
+  geom_point()+ geom_line()+
+  stat_smooth(method = "lm", formula = y ~ x, geom = "smooth")+
+  scale_x_continuous(n.breaks=18)+
+  ylab("Annual Anomaly (°C)") +
+  ggtitle("Annual Max Temp Anomaly 1991-2016")
 
 #second plot = average annual point count of lesser yellowlegs 1991 to 2021
 # plot(mean.yl$Year, mean.yl$SpeciesTotal)
 # lm(mean.yl$Year ~ mean.yl$SpeciesTotal)
 ggplot(data=mean.yl, aes(Year, SpeciesTotal))+
+  theme(panel.background = element_rect(fill="white"),
+        panel.grid.major = element_line(colour = "grey", linetype = "dotted"))+
   geom_point()+
-  stat_smooth(method = "lm",
-              formula = y ~ x,
-              geom = "smooth")
+  stat_smooth(method = "lm", formula = y ~ x, geom = "smooth")+
+  scale_x_continuous(n.breaks=15)+
+  scale_y_continuous(n.breaks=8)+
+  ylab("Average Count")+
+  ggtitle("Avg Annual Point Count of Lesser Yellowlegs 1991-2021")
 
 #third plot = correlation between temperature anomaly and yellowleg count
 # plot(merg$`Annual Anomaly`, merg$SpeciesTotal)
 ggplot(data=merg, aes(`Annual Anomaly`, SpeciesTotal))+
+  theme(panel.background = element_rect(fill="white"),
+        panel.grid.major = element_line(colour = "grey", linetype = "dotted"))+
   geom_point()+
   stat_smooth(method = "lm",
               formula = y ~ x,
-              geom = "smooth")
+              geom = "smooth")+
+  scale_y_continuous(n.breaks=8)+
+  xlab("Annual Anomaly (°C)")+
+  ylab("Average Count")+
+  ggtitle("Correlation b/w Temp Anomaly & Yellowleg Count")
+```
 
-
+### Statistical Analysis:
+```{r}
 lm(merg$`Monthly Anomaly`~ merg$SpeciesTotal)
 cor.test(merg$`Monthly Anomaly`, merg$SpeciesTotal)
 #p-value indicates that the correlation is significant, however it does not appear very strong and given the limited dataset I used I would take these results with a grain of salt
 ```
 The data does show a weak correlation between temperature and yellowleg count, though in an opposite direction from what I expected. I thought that as temperatures rose, bird count would fall.
 
-However, this paper:(https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.9495) states that "Since the 1970s, the lesser yellowlegs (Tringa flavipes) has experienced a pronounced reduction in abundance of ~63%." My data showed an increase in lesser yellowlegs over the past decade, showing that the avian point count data is likely not a reliable indicator of total species population size. The avian point count data for lesser yellowlegs specifically did not cover as wide of a range of dates as I would have liked, so for the future I may want to find another dataset to represent population size over time.
+This paper:(https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.9495) states that "Since the 1970s, the lesser yellowlegs (Tringa flavipes) has experienced a pronounced reduction in abundance of ~63%." However, my data showed an increase in lesser yellowlegs over the past decade, showing that the avian point count data is likely not a reliable indicator of total species population size.   
+
+### Further Analysis:  
+The avian point count data did not cover as wide of a range of dates as I would have liked, so for the future I may want to find another dataset to represent population size over time. It would also be interesting to test for different variables (eg. precipitation) and see which correlates the most to species number. Another area of exploration could be species range over time to see if it is shifting and so I could use spatial data.
+
+### Another plot idea:
+```{r}
+# using geom_smooth instead of a linear model, we can see more of the downward slope as the anomaly perhaps reaches a "tipping point" for the species
+# If we had more data we could test this further
+# Maybe lesser yellow-legs do better in warmer temperatures up to a certain point, the peak in this plot appears to be around 1.2 degrees above baseline, before dropping off 
+ggplot(data=merg, aes(`Annual Anomaly`, SpeciesTotal))+
+  theme(panel.background = element_rect(fill="white"),
+        panel.grid.major = element_line(colour = "grey", linetype = "dotted"))+
+  geom_point()+ geom_smooth()+
+  scale_y_continuous(n.breaks=8)+
+  ggtitle("Correlation with loess line")
+```
+
