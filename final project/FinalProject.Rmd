@@ -7,7 +7,9 @@ editor_options:
   chunk_output_type: console
 ---
 ## Background:
-I was curious to see if lesser yellowleg populations were sensitive to heat. The missouri department of conservation states that they may lose nesting ground as the climate warms (https://mdc.mo.gov/discover-nature/field-guide/lesser-yellowlegs). To test this I will compare max temperature data from within the US to a record of migrant bird sightings within the US. Since it is not possible to count every single bird within a population, the method used is avian point count meaning a single person in a single location counted all of the birds of each species for a fixed amount of time.
+  I wanted to find out if lesser yellowleg populations were sensitive to high temperatures The missouri department of conservation states that they may lose nesting ground as the climate warms (https://mdc.mo.gov/discover-nature/field-guide/lesser-yellowlegs). To test a correlation between high temperatures and population size I will compare max temperature data from within the US to a record of lesser yellowlegs populations in the US. 
+  The yellowleg data comes from the North American Breeding Bird Survey dataset from the USGS website. They used a method called avian point count, where a single person in a single location counted all of the birds of each species for a fixed amount of time. 
+  The temperature data from berkeleyearth is derived from about 19,000 temperature stations across the US from which land surface temperatures were taken and compared to the baseline for that station. The baseline is set as Jan 1951-Dec 1980.
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
@@ -25,31 +27,6 @@ path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/es
 # This is the file for daily max land temperature anomaly from 1870 to 2019 in the state of California
 # Data is split into monthly, annual, 5-year, 10-year, and 20-year anomalies
 # Berkeley Earth
-```
-First step is downloading temperature anomaly data for the US from berkeleyearth:
-```{r}
-temp.URL = "http://berkeleyearth.lbl.gov/auto/Regional/TMAX/Text/united-states-TMAX-Trend.txt"
-temp.file = file.path("data", basename(temp.URL))
-if(!file.exists(temp.file)) {
-  dir.create("data", FALSE, FALSE)
-  download.file(temp.URL, temp.file, mode="wb")
-}
-```
-
-The temperature data is a txt file so we need to convert it to a data.frame:
-```{r}
-r = read.delim(file = temp.file, skip = 67, header = FALSE)
-t.hdr = r[1:2,] #this separates the header
-t.data.a = r[-c(1:3),] # this is the actual data
-t.data.b = stringr::str_squish(t.data.a) #turns multiples spaces into one space
-t.data.c = strsplit(t.data.b, " ") #splits the string up so we can create separate columns
-t.data.d = do.call(rbind, t.data.c)
-t.data.e = matrix(as.numeric(t.data), nrow=nrow(t.data)) 
-colnames(t.data.e) <- c("Year", "Month", "Monthly Anomaly", "Monthly Anomaly Unc", 
-                 "Annual Anomaly", "Annual Anomaly Unc", "Five-year Anomaly", 
-                 "Five-year Anomaly Unc", "Ten-year Anomaly", "Ten-year Anomaly Unc",
-                 "Twenty-year Anomaly", "Twenty-year Anomaly Unc")
-t.data <- as.data.frame(t.data.e) #this is our complete temperature anomal data.frame for the US
 ```
 
 ```{r, scratch, include=FALSE} 
@@ -150,66 +127,68 @@ t.data.a = r[-c(1:3),] # this is the actual data
 t.data.b = stringr::str_squish(t.data.a) #turns multiples spaces into one space
 t.data.c = strsplit(t.data.b, " ") #splits the string up so we can create separate columns
 t.data.d = do.call(rbind, t.data.c)
-t.data.e = matrix(as.numeric(t.data), nrow=nrow(t.data)) 
+t.data.e = matrix(as.numeric(t.data.d), nrow=nrow(t.data.d)) 
+# Unc. = uncertainty
 colnames(t.data.e) <- c("Year", "Month", "Monthly Anomaly", "Monthly Anomaly Unc", 
                  "Annual Anomaly", "Annual Anomaly Unc", "Five-year Anomaly", 
                  "Five-year Anomaly Unc", "Ten-year Anomaly", "Ten-year Anomaly Unc",
                  "Twenty-year Anomaly", "Twenty-year Anomaly Unc")
-t.data <- as.data.frame(t.data.e) #this is our complete temperature anomal data.frame for the US
+t.data.f <- as.data.frame(t.data.e) 
 ```
 
 Since avian point count data for lesser yellow legs is only available for the years 1992 to 2021, subset temperature data to match this time frame:
 ```{r}
-temp <- subset(t.data, Year < 2021 & Year > 1990)
-# temp give the 
+t.data.g <- subset(t.data.f, Year < 2021 & Year > 1990)
 ```
 
+We are going to use annual anomalies for our plot, but the annual anomalies are given as averages centered around the corresponding month in the table. In order to only get one value per year, subset only data for the month of June:
 ```{r}
-merg <- merge(temp, agg, by = 'Year')
-plot(merg$`Annual Anomaly`, merg$SpeciesTotal)
-plot(merg$`Monthly Anomaly`, merg$SpeciesTotal)
-plot(agg$Year, agg$SpeciesTotal)
-lm(agg$Year ~ agg$SpeciesTotal)
+temp <- subset(t.data.g, Month == 6)
+# this is the final table for our temperature data, now we can use it for our plot
+```
 
+
+Merge the two datasets:
+```{r}
+merg <- merge(temp, mean.yl, by = 'Year') # merged by the common column, "Year"
+```
+
+Plots:
+```{r}
 library(ggplot2)
-ggplot(data=agg, aes(Year, SpeciesTotal))+
+
+#first plot = annual max temperature anomaly from 1991 to 2016
+# plot(temp$Year, temp$`Annual Anomaly`)
+# lm(temp$Year ~ temp$`Annual Anomaly`)
+ggplot(data=temp, aes(Year, `Annual Anomaly`))+
+  geom_point()+
+  geom_line()+
+  stat_smooth(method = "lm",
+              formula = y ~ x,
+              geom = "smooth")
+
+#second plot = average annual point count of lesser yellowlegs 1991 to 2021
+# plot(mean.yl$Year, mean.yl$SpeciesTotal)
+# lm(mean.yl$Year ~ mean.yl$SpeciesTotal)
+ggplot(data=mean.yl, aes(Year, SpeciesTotal))+
   geom_point()+
   stat_smooth(method = "lm",
               formula = y ~ x,
               geom = "smooth")
 
-ggplot(data=agg, aes(Year, SpeciesTotal))+
-  geom_point()+
-  geom_smooth()
-
-ggplot(data=merg, aes(`Monthly Anomaly`, SpeciesTotal))+
-  geom_point()+
-  geom_smooth()
-
-ggplot(data=merg, aes(`Monthly Anomaly`, SpeciesTotal))+
-  geom_point()+
-  stat_smooth(method = "lm",
-              formula = y ~ x,
-              geom = "smooth")
-
+#third plot = correlation between temperature anomaly and yellowleg count
+# plot(merg$`Annual Anomaly`, merg$SpeciesTotal)
 ggplot(data=merg, aes(`Annual Anomaly`, SpeciesTotal))+
   geom_point()+
   stat_smooth(method = "lm",
               formula = y ~ x,
               geom = "smooth")
 
+
 lm(merg$`Monthly Anomaly`~ merg$SpeciesTotal)
 cor.test(merg$`Monthly Anomaly`, merg$SpeciesTotal)
 #p-value indicates that the correlation is significant, however it does not appear very strong and given the limited dataset I used I would take these results with a grain of salt
-t.test(merg$`Monthly Anomaly`, merg$SpeciesTotal)
-summary(lm(merg$`Monthly Anomaly`~ merg$SpeciesTotal))
-chisq.test(merg$`Monthly Anomaly`~ merg$SpeciesTotal)
 ```
-The data does not show a strong correlation between temperature anomaly and species count
+The data does show a weak correlation between temperature and yellowleg count, though in an opposite direction from what I expected. I thought that as temperatures rose, bird count would fall.
 
-
-I want intersting results :/
-Looking at spatial data to see if breeding range has changed/....
-
-"Since the 1970s, the lesser yellowlegs (Tringa flavipes) has experienced a pronounced reduction in abundance of ~63%." (https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.9495)
-This is not shown in my data
+However, this paper:(https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.9495) states that "Since the 1970s, the lesser yellowlegs (Tringa flavipes) has experienced a pronounced reduction in abundance of ~63%." My data showed an increase in lesser yellowlegs over the past decade, showing that the avian point count data is likely not a reliable indicator of total species population size. The avian point count data for lesser yellowlegs specifically did not cover as wide of a range of dates as I would have liked, so for the future I may want to find another dataset to represent population size over time.
