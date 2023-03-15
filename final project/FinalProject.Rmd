@@ -6,14 +6,15 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-
+## Background:
+I was curious to see if lesser yellowleg populations were sensitive to heat. The missouri department of conservation states that they may lose nesting ground as the climate warms (https://mdc.mo.gov/discover-nature/field-guide/lesser-yellowlegs). To test this I will compare max temperature data from within the US to a record of migrant bird sightings within the US. Since it is not possible to count every single bird within a population, the method used is avian point count meaning a single person in a single location counted all of the birds of each species for a fixed amount of time.
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
 #setwd(path)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Read in file:
 # URL = "http://berkeleyearth.lbl.gov/auto/Regional/TMAX/Text/california-TMAX-Trend.txt"
 # f = file.path("data", basename(URL))
@@ -25,7 +26,7 @@ path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/es
 # Data is split into monthly, annual, 5-year, 10-year, and 20-year anomalies
 # Berkeley Earth
 ```
-Downloading Temp Data for US:
+First step is downloading temperature anomaly data for the US from berkeleyearth:
 ```{r}
 temp.URL = "http://berkeleyearth.lbl.gov/auto/Regional/TMAX/Text/united-states-TMAX-Trend.txt"
 temp.file = file.path("data", basename(temp.URL))
@@ -34,23 +35,24 @@ if(!file.exists(temp.file)) {
   download.file(temp.URL, temp.file, mode="wb")
 }
 ```
-Creating Matrix of Temp Data:
+
+The temperature data is a txt file so we need to convert it to a data.frame:
 ```{r}
 r = read.delim(file = temp.file, skip = 67, header = FALSE)
-t.hdr = r[1:2,]
-t.data = r[-c(1:3),]
-t.data = stringr::str_squish(t.data)
-t.data = strsplit(t.data, " ")
-t.data = do.call(rbind, t.data)
-t.data = matrix(as.numeric(t.data), nrow=nrow(t.data))
-colnames(t.data) <- c("Year", "Month", "Monthly Anomaly", "Monthly Anomaly Unc", 
+t.hdr = r[1:2,] #this separates the header
+t.data.a = r[-c(1:3),] # this is the actual data
+t.data.b = stringr::str_squish(t.data.a) #turns multiples spaces into one space
+t.data.c = strsplit(t.data.b, " ") #splits the string up so we can create separate columns
+t.data.d = do.call(rbind, t.data.c)
+t.data.e = matrix(as.numeric(t.data), nrow=nrow(t.data)) 
+colnames(t.data.e) <- c("Year", "Month", "Monthly Anomaly", "Monthly Anomaly Unc", 
                  "Annual Anomaly", "Annual Anomaly Unc", "Five-year Anomaly", 
                  "Five-year Anomaly Unc", "Ten-year Anomaly", "Ten-year Anomaly Unc",
                  "Twenty-year Anomaly", "Twenty-year Anomaly Unc")
-t.data <- as.data.frame(t.data)
+t.data <- as.data.frame(t.data.e) #this is our complete temperature anomal data.frame for the US
 ```
 
-```{r, scratch} 
+```{r, scratch, include=FALSE} 
 # Scratch work from when I was figuring things out:
 #Delete before finishing:
 # list.files(path)
@@ -69,8 +71,7 @@ t.data <- as.data.frame(t.data)
 
 ```
 
-temperature anomaly data for California:
-```{r}
+```{r, California temp scratch, include=FALSE}
 # Read txt file "f" with first 68 comment lines removed, readLines method
 # x = readLines(f)
 # x = x[-c(1:68)]
@@ -101,7 +102,7 @@ temperature anomaly data for California:
 #                  "Twenty-year Anomaly", "Twenty-year Anomaly Unc")
 ```
 
-Dowloading bird data:
+Download avian point count data from sciencebase as a csv:
 ```{r}
 # library(rjson)
 # URL.bird = "	https://www.sciencebase.gov/MigrantNonBreeder.zip"
@@ -115,26 +116,100 @@ migrant.sum <- file.path(path, "data", "MigrantNonBreeder", "MigrantSummary.csv"
 birds <- read.csv(migrant.sum)
 ```
 
-Creating data.frame for lesser yellow legs in US:
+From the bird dataset, subset the lesser yellowlegs within the US:
 ```{r}
 # AOU 2550 = lesser yellowlegs
 yl <- subset(birds, AOU == 2550)
 # 840 = US
 us.yl <- subset(yl, CountryNum == 840)
-# We have data for 1992 to 2021 so we need to subset our temp data
-plot(us.yl$Year, us.yl$SpeciesTotal)
-agg <- aggregate(SpeciesTotal ~ Year, data=us.yl, FUN=mean)
-#Actually it doesnt make sense to sum these because the numbers may only be increasing due to increased measurements taken, maybe use mean?
+# This limits our data to the years 1992 - 2021
 ```
 
+There were multiple point counts taken per year, so take the average for each year:
+```{r}
+mean.yl <- aggregate(SpeciesTotal ~ Year, data=us.yl, FUN=mean)
+```
+
+Download temperature anomaly data for the US from berkeleyearth:
+```{r}
+temp.URL = "http://berkeleyearth.lbl.gov/auto/Regional/TMAX/Text/united-states-TMAX-Trend.txt"
+temp.file = file.path("data", basename(temp.URL))
+if(!file.exists(temp.file)) {
+  dir.create("data", FALSE, FALSE)
+  download.file(temp.URL, temp.file, mode="wb")
+}
+# this dataset gives the anomaly in maximum monthly and annual temperatures for the US
+# A more meaningful way to look at the data would be to localize it, but the samples for the lesser yellowlegs were taken all over the US and there was not enough data for any one location
+```
+
+The temperature data is a txt file so we need to convert it to a data.frame:
+```{r}
+r = read.delim(file = temp.file, skip = 67, header = FALSE)
+t.hdr = r[1:2,] #this separates the header
+t.data.a = r[-c(1:3),] # this is the actual data
+t.data.b = stringr::str_squish(t.data.a) #turns multiples spaces into one space
+t.data.c = strsplit(t.data.b, " ") #splits the string up so we can create separate columns
+t.data.d = do.call(rbind, t.data.c)
+t.data.e = matrix(as.numeric(t.data), nrow=nrow(t.data)) 
+colnames(t.data.e) <- c("Year", "Month", "Monthly Anomaly", "Monthly Anomaly Unc", 
+                 "Annual Anomaly", "Annual Anomaly Unc", "Five-year Anomaly", 
+                 "Five-year Anomaly Unc", "Ten-year Anomaly", "Ten-year Anomaly Unc",
+                 "Twenty-year Anomaly", "Twenty-year Anomaly Unc")
+t.data <- as.data.frame(t.data.e) #this is our complete temperature anomal data.frame for the US
+```
+
+Since avian point count data for lesser yellow legs is only available for the years 1992 to 2021, subset temperature data to match this time frame:
 ```{r}
 temp <- subset(t.data, Year < 2021 & Year > 1990)
-plot(temp$Year, temp$`Annual Anomaly`)
+# temp give the 
 ```
 
 ```{r}
 merg <- merge(temp, agg, by = 'Year')
 plot(merg$`Annual Anomaly`, merg$SpeciesTotal)
 plot(merg$`Monthly Anomaly`, merg$SpeciesTotal)
-```
+plot(agg$Year, agg$SpeciesTotal)
+lm(agg$Year ~ agg$SpeciesTotal)
 
+library(ggplot2)
+ggplot(data=agg, aes(Year, SpeciesTotal))+
+  geom_point()+
+  stat_smooth(method = "lm",
+              formula = y ~ x,
+              geom = "smooth")
+
+ggplot(data=agg, aes(Year, SpeciesTotal))+
+  geom_point()+
+  geom_smooth()
+
+ggplot(data=merg, aes(`Monthly Anomaly`, SpeciesTotal))+
+  geom_point()+
+  geom_smooth()
+
+ggplot(data=merg, aes(`Monthly Anomaly`, SpeciesTotal))+
+  geom_point()+
+  stat_smooth(method = "lm",
+              formula = y ~ x,
+              geom = "smooth")
+
+ggplot(data=merg, aes(`Annual Anomaly`, SpeciesTotal))+
+  geom_point()+
+  stat_smooth(method = "lm",
+              formula = y ~ x,
+              geom = "smooth")
+
+lm(merg$`Monthly Anomaly`~ merg$SpeciesTotal)
+cor.test(merg$`Monthly Anomaly`, merg$SpeciesTotal)
+#p-value indicates that the correlation is significant, however it does not appear very strong and given the limited dataset I used I would take these results with a grain of salt
+t.test(merg$`Monthly Anomaly`, merg$SpeciesTotal)
+summary(lm(merg$`Monthly Anomaly`~ merg$SpeciesTotal))
+chisq.test(merg$`Monthly Anomaly`~ merg$SpeciesTotal)
+```
+The data does not show a strong correlation between temperature anomaly and species count
+
+
+I want intersting results :/
+Looking at spatial data to see if breeding range has changed/....
+
+"Since the 1970s, the lesser yellowlegs (Tringa flavipes) has experienced a pronounced reduction in abundance of ~63%." (https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.9495)
+This is not shown in my data
