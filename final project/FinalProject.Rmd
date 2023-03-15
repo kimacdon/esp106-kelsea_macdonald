@@ -7,11 +7,17 @@ editor_options:
   chunk_output_type: console
 ---
 ## Background:
+
   I wanted to find out if lesser yellowleg populations were sensitive to high temperatures The missouri department of conservation states that they may lose nesting ground as the climate warms (https://mdc.mo.gov/discover-nature/field-guide/lesser-yellowlegs). To test a correlation between high temperatures and population size I will compare max temperature data from within the US to a record of lesser yellowlegs populations in the US.  
     
   The yellowleg data comes from the North American Breeding Bird Survey dataset from the USGS website. They used a method called avian point count, where a single person in a single location counted all of the birds of each species for a fixed amount of time. 
     
   The temperature data from berkeleyearth is derived from about 19,000 temperature stations across the US from which land surface temperatures were taken and compared to the baseline for that station. The baseline is set as Jan 1951-Dec 1980. Then the anomaly from baseline for each station was averaged together to give a single value to represent temperature anomaly for the entire US.
+```{r echo = FALSE, results = 'asis'}
+image = "https://www.allaboutbirds.org/guide/assets/photo/301797021-1280px.jpg"
+cat(paste0('<center><img src="', image,  '"></center>')) 
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
