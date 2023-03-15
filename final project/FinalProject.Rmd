@@ -208,12 +208,13 @@ ggplot(data=merg, aes(`Annual Anomaly`, SpeciesTotal))+
 ### Statistical Analysis:
 ```{r}
 lm(merg$`Monthly Anomaly`~ merg$SpeciesTotal)
+# The linear model predicts an increase of about 0.06 in yellowleg count for every degree anomaly
 cor.test(merg$`Monthly Anomaly`, merg$SpeciesTotal)
-#p-value indicates that the correlation is significant, however it does not appear very strong and given the limited dataset I used I would take these results with a grain of salt
+# The corellation coefficient of 0.235 suggests a weak correlation and the p-value indicates that even this correlation is not significant. Given the limited dataset I used it makes sense I could not obtain a significant result.
 ```
-The data does show a weak correlation between temperature and yellowleg count, though in an opposite direction from what I expected. I thought that as temperatures rose, bird count would fall.
+Even if the weak correlation between temperature and bird count was significant, it is the an opposite direction from what I expected. I thought that as temperatures rose, bird count would fall.
 
-This paper:(https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.9495) states that "Since the 1970s, the lesser yellowlegs (Tringa flavipes) has experienced a pronounced reduction in abundance of ~63%." However, my data showed an increase in lesser yellowlegs over the past decade, showing that the avian point count data is likely not a reliable indicator of total species population size.   
+This paper:(https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.9495) states that "Since the 1970s, the lesser yellowlegs (Tringa flavipes) has experienced a pronounced reduction in abundance of ~63%." However, my data showed an increase in lesser yellowlegs over the past few decades, showing that the avian point count data is likely not a reliable indicator of total species population size.   
 
 ### Further Analysis:  
 The avian point count data did not cover as wide of a range of dates as I would have liked, so for the future I may want to find another dataset to represent population size over time. It would also be interesting to test for different variables (eg. precipitation) and see which correlates the most to species number. Another area of exploration could be species range over time to see if it is shifting and so I could use spatial data.
