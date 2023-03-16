@@ -89,13 +89,14 @@ path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/es
 
 ### Download avian point count data from sciencebase as a csv:
 ```{r}
-# library(rjson)
-# URL.bird = "	https://www.sciencebase.gov/MigrantNonBreeder.zip"
-# f.bird = file.path("data", basename(URL.bird))
-# if (!file.exists(f.bird)) {
-#   download.file(URL.bird, f.bird, mode="wb")
-# }
-
+URL.bird = "https://www.sciencebase.gov/catalog/file/get/625f151ed34e85fa62b7f926?f=__disk__83%2F4a%2F5f%2F834a5f4c8d040a5c5e6899f6e77651a5916dc411"
+f.bird = file.path("data", basename(URL.bird))
+if (!file.exists(f.bird)) {
+  download.file(URL.bird, f.bird, mode="wb")
+  unzip(f.bird)
+}
+class(f.bird)
+f.bird
 #Make this reproducible later
 migrant.sum <- file.path(path, "data", "MigrantNonBreeder", "MigrantSummary.csv")
 birds <- read.csv(migrant.sum)
