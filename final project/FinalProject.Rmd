@@ -89,14 +89,17 @@ path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/es
 
 ### Download avian point count data from sciencebase as a csv:
 ```{r}
-bird.URL <- "https://raw.githubusercontent.com/kimacdon/esp106-kelsea_macdonald/main/final%20project/MigrantSummary.csv?token=GHSAT0AAAAAAB55XHPC3C57G72TFULRDB7QZAUVCVQ"
+# migrant.sum <- file.path(path, "data", "MigrantNonBreeder", "MigrantSummary.csv")
+# birds <- read.csv(migrant.sum)
+bird.URL <- "https://raw.githubusercontent.com/kimacdon/esp106-kelsea_macdonald/main/final%20project/MigrantSummary.zip"
 bird.file <- file.path("data", basename(bird.URL))
 if(!file.exists(bird.file)) {
   dir.create("data", FALSE, FALSE)
   download.file(bird.URL, bird.file)
+  bird.file <- unzip(bird.file)
 }
-migrant.sum <- file.path(path, "data", "MigrantNonBreeder", "MigrantSummary.csv")
-birds <- read.csv(migrant.sum)
+
+birds <- read.csv(bird.file)
 ```
 I tried downloading the file from the internet, but it was a clickable link to download with no url associated with it so I decided to just upload the file to my github so you can download it from there.
 I tried finding another way to load in north american breeding bird survey data and found two packages created for this purpose. bbsAssistant wouldn't install - an error states that it was not available for this version of R. bbsBayes is a package that I believe is for a specific type of statistical analysis of the data but it wouldn't load without some separate packages and app installations on my mac that I wasn't sure I wanted to trust or spend space on.
