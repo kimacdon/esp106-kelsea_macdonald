@@ -235,7 +235,40 @@ ggplot(data=merg, aes(`Annual Anomaly`, SpeciesTotal))+
   ggtitle("Correlation with loess line")
 ```
 
-```{r}
 
+testing some stuff out:
+```{r}
+us.birds <- subset(birds, CountryNum == 840)
+t.data.h <- subset(t.data.f, Month == 6)
+t.data.i <- t.data.h[,c(1,5)]
+for(i in length(unique(us.birds$AOU))) {
+  a <- subset(us.birds, AOU == unique(us.birds$AOU[4]))
+  b <- aggregate(SpeciesTotal ~ Year, data=a, FUN=mean)
+  c <- subset(t.data.i, Year %in% b$Year)
+  d <- merge(c, b, by = 'Year')
+}
+plot.bbs.temp <- function(species) {
+  e <- subset(us.birds, AOU == species)
+  f <- aggregate(SpeciesTotal ~ Year, data=e, FUN=mean)
+  g <- subset(t.data.i, Year %in% f$Year)
+  h <- merge(g, f, by = 'Year')
+  ggplot(data=h, aes(`Annual Anomaly`, SpeciesTotal))+
+  theme(panel.background = element_rect(fill="white"),
+        panel.grid.major = element_line(colour = "grey", linetype = "dotted"))+
+  geom_point()+
+  stat_smooth(method = "lm",
+              formula = y ~ x,
+              geom = "smooth")+
+  xlab("Annual Anomaly (°C)")+
+  ylab("Average Count")+
+  ggtitle("Correlation b/w Temp Anomaly & Bird Count")
+}
+plot.bbs.temp(2140)
+```
+
+```{r}
+library("readxl")
+names.path <- file.path(path, "data", "SpeciesNames.xlsx")
+names <- read_excel(names.path)
 ```
 
