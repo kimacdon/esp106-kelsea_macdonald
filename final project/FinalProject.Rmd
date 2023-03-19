@@ -100,9 +100,8 @@ bird.file <- file.path("data", basename(bird.URL))
 if(!file.exists(bird.file)) {
   dir.create("data", FALSE, FALSE)
   download.file(bird.URL, bird.file)
-  bird.file <- unzip(bird.file)
 }
-
+bird.file <- unzip(bird.file)
 birds <- read.csv(bird.file)
 ```
 I tried downloading the file from the internet, but it was a clickable link to download with no url associated with it so I decided to just upload the file to my github so you can download it from there.
@@ -270,9 +269,10 @@ plot.bbs.temp <- function(species) {
 plot.bbs.temp(3640)
 ```
 
-### The only problem with this function now is if you do not know the species ID, so then wrote a function to look up the ID (AOU) given the common english name for the species.
+### The only problem with this function is if you do not know the species ID. To address this, I then wrote a function to look up the ID (AOU) given the common english name for the species:
 ```{r}
 library("readxl")
+# First we read in the excel file containing the species names and IDs
 names.URL <- "https://raw.githubusercontent.com/kimacdon/esp106-kelsea_macdonald/main/final%20project/SpeciesNames.xlsx"
 names.file <- file.path("data", basename(names.URL))
 if(!file.exists(names.file)) {
@@ -283,13 +283,14 @@ names <- as.data.frame(names)
 # removed anything within parentheses as they were not official parts of the species' names (found this code on stackflow):
 names$`Common Name English` <- 
   gsub(r"{\s*\([^\)]+\)}","",as.character(names$`Common Name English`))
-#replaced any spaces from all the species names with a dot:
+# replaced any spaces from all the species names with a dot:
 names$`Common Name English` <- 
   gsub(" ", ".", names$`Common Name English`)
-#there was a period before the first 17 species so I removed that:
+# there was a period before the first 17 species so I removed that:
 names[c(1:17),2] <-  
   sub(".", "", names[c(1:17),2])
-# names <- names[order(AOU, decreasing = TRUE),]
+
+# creating the function:
 find.AOU <- function(CNE) {
   names[which(names$`Common Name English` == CNE, arr.ind = TRUE),1]
 }
@@ -300,4 +301,4 @@ find.AOU("Black.Swift")
 plot.bbs.temp(find.AOU("Lark.Sparrow"))
 ```
 
-### Conclusion: I began this project wanting to analyze the relationship between Lesser Yellowlegs and the increasing high temperatures. From this I found that there are not quite enough data points for the species to form a reliable conclusion about the correlation. However the idea of doing this type of analysis on any species within the dataset was intriguing to me, so I wrote a function to do just that. 
+#### Conclusion: I began this project wanting to analyze the relationship between Lesser Yellowlegs and the increasing high temperatures. From this I found that there are not quite enough data points for the species to form a reliable conclusion about the correlation. However the idea of doing this type of analysis on any species within the dataset was intriguing to me, so I wrote a function to do just that. This function would be more useful on larger datasets, but it still demonstrates a simple way to analyze correlations between two variables. By looking at several correlations, I notice a pattern of consistantly positive correlations, which is not what I would expect to see. The issue with the north american breeding bird survey dataset is that the number of observations seems to increase overtime for all bird species, even when the actual population sizes have been found to be decreasing. This suggests that the survey is not an accurate measurement of population size and may be biased.
