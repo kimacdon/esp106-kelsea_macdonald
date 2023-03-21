@@ -13,6 +13,7 @@ editor_options:
   The yellowleg data comes from the North American Breeding Bird Survey dataset from the USGS website. They used a method called avian point count, where a single person in a single location counted all of the birds of each species for a fixed amount of time. 
     
   The temperature data from berkeleyearth is derived from about 19,000 temperature stations across the US from which land surface temperatures were taken and compared to the baseline for that station. The baseline is set as Jan 1951-Dec 1980. Then the anomaly from baseline for each station was averaged together to give a single value to represent temperature anomaly for the entire US.
+  
 ```{r echo = FALSE, results = 'asis'}
 image = "https://www.allaboutbirds.org/guide/assets/photo/301797021-1280px.jpg"
 cat(paste0('<center><img src="', image,  '"></center>')) 
@@ -20,77 +21,8 @@ cat(paste0('<center><img src="', image,  '"></center>'))
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
+# path <-  "~/Library/CloudStorage/OneDrive-UniversityofCalifornia,Davis/ESP106/esp106-kelsea_macdonald/final project"
 #setwd(path)
-```
-
-```{r, include=FALSE}
-# Read in file:
-# URL = "http://berkeleyearth.lbl.gov/auto/Regional/TMAX/Text/california-TMAX-Trend.txt"
-# f = file.path("data", basename(URL))
-# if (!file.exists(f)) {
-#   dir.create("data", FALSE, FALSE)
-#   download.file(URL, f, mode="wb")
-# }
-# This is the file for daily max land temperature anomaly from 1870 to 2019 in the state of California
-# Data is split into monthly, annual, 5-year, 10-year, and 20-year anomalies
-# Berkeley Earth
-```
-
-```{r, scratch, include=FALSE} 
-# Scratch work from when I was figuring things out:
-#Delete before finishing:
-# list.files(path)
-# library(terra)
-# dailyTMAX60 <- rast("Complete_TMAX_Daily_LatLong1_1960.nc")
-# plot(dailyTMAX60)
-# dailyTMAX60 is the average max land temperature from 1960 to 1969 for the whole world
-## data <- data.frame(strsplit(data[1,1], split = ","), strsplit(data[2:1796,1], split = " "))
-# data <- as.matrix(data, ncol=12)
-# separate(data) #not working :/
-
-# library(dplyr)
-# library(tidyr)
-# data <- read.delim(file="california-TMAX-Trend.txt", skip = 68, sep="\t", quote="", comment.char="")
-# separate(data, col =1, sep=" ")f = "california-TMAX-Trend.txt"
-
-# for(i in length(unique(us.birds$AOU))) {
-#   a <- subset(us.birds, AOU == unique(us.birds$AOU[i]))
-#   b <- aggregate(SpeciesTotal ~ Year, data=a, FUN=mean)
-#   c <- subset(t.data.i, Year %in% b$Year)
-#   d <- merge(c, b, by = 'Year')
-# }
-```
-
-```{r, California temp scratch, include=FALSE}
-# Read txt file "f" with first 68 comment lines removed, readLines method
-# x = readLines(f)
-# x = x[-c(1:68)]
-# 
-# # read.delim method
-# data <- read.delim(file= f, skip=68, header=F)
-# # Then set header as the first 2 rows
-# hdr = data[1:2,]
-# set rest as the data
-# d= data[-c(1:3),]
-# # turn the multiple spaces into single spaces
-# d = stringr::str_squish(d)
-# # split the string into separate characters by single space
-# y = strsplit(d, " ")
-# # bind the strings into rows
-# z = do.call(rbind, y)
-# # binds the rows into a matrix and changes the variables to numeric
-# z = matrix(as.numeric(z), nrow=nrow(z))
-# head(z)
-# colnames(z) <- c("Year", "Month", "Monthly Anomaly", "Monthly Anomaly Unc", 
-#                  "Annual Anomaly", "Annual Anomaly Unc", "Five-year Anomaly", 
-#                  "Five-year Anomaly Unc", "Ten-year Anomaly", "Ten-year Anomaly Unc",
-#                  "Twenty-year Anomaly", "Twenty-year Anomaly Unc")
-# a <- as.data.frame(z)
-# colnames(a) <- c("Year", "Month", "Monthly Anomaly", "Monthly Anomaly Unc", 
-#                  "Annual Anomaly", "Annual Anomaly Unc", "Five-year Anomaly", 
-#                  "Five-year Anomaly Unc", "Ten-year Anomaly", "Ten-year Anomaly Unc",
-#                  "Twenty-year Anomaly", "Twenty-year Anomaly Unc")
 ```
 
 ### Download avian point count data from sciencebase as a csv:
@@ -301,4 +233,6 @@ find.AOU("Black.Swift")
 plot.bbs.temp(find.AOU("Lark.Sparrow"))
 ```
 
-#### Conclusion: I began this project wanting to analyze the relationship between Lesser Yellowlegs and the increasing high temperatures. From this I found that there are not quite enough data points for the species to form a reliable conclusion about the correlation. However the idea of doing this type of analysis on any species within the dataset was intriguing to me, so I wrote a function to do just that. This function would be more useful on larger datasets, but it still demonstrates a simple way to analyze correlations between two variables. By looking at several correlations, I notice a pattern of consistantly positive correlations, which is not what I would expect to see. The issue with the north american breeding bird survey dataset is that the number of observations seems to increase overtime for all bird species, even when the actual population sizes have been found to be decreasing. This suggests that the survey is not an accurate measurement of population size and may be biased.
+#### Conclusion: I began this project wanting to analyze the relationship between Lesser Yellowlegs and the increasing high temperatures. First I wrangled the data into separate tables for each variable. Then I plotted the trends in the two variables over time. I saw an increase in max temperature anomaly over time for 1991 to 2016 and a slight increase in species count over time from 1991 to 2021. Then I merged the tables and plotted their correlation. From this I found that there are not quite enough data points for the species to form a reliable conclusion about the correlation.   
+#### The idea of doing this type of analysis on any species within the dataset was intriguing to me. So, I continued my project by writing a function to do just that. This function would be more useful on datasets with more points per species, but it still demonstrates a simple way to analyze correlations between two variables. By looking at several correlations, I noticed a pattern of consistantly positive correlations, which is not what I would expect to see. There may be an issue with the reliability the north american breeding bird survey dataset to represent population size as the number of observations seems to slightly increase overtime for most bird species, even when the actual population sizes have been found to be decreasing.   
+#### If I were to do any further research I would next look at population range data so see if species range shifts as temperature anomalies increase.
